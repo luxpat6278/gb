@@ -5,17 +5,24 @@ const mysql = require('mysql2/promise');
 
 const app = express();
 
-// ✅ Разрешаем CORS **до** всех маршрутов
+const allowedOrigins = ['http://localhost:5173', 'https://graduation-bmpx.vercel.app'];
+
 app.use(cors({
-  origin: 'http://localhost:5173', // разрешаем твой фронтенд
-  methods: ['GET', 'POST'],        // явно указываем методы
-  credentials: true,               // если используешь куки или авторизацию
+  origin: function (origin, callback) {
+    // allow requests with no origin like mobile apps or curl requests
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST'],
+  credentials: true,
 }));
 
-// ✅ Позволяем серверу читать JSON из тела запроса
 app.use(express.json());
 
-// ✅ Подключаем базу
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -23,10 +30,8 @@ const pool = mysql.createPool({
   database: process.env.DB_NAME,
 });
 
-// ✅ Подключаем маршруты
 const rsvpRouter = require('./routes/rspv');
 app.use('/api/rsvp', rsvpRouter(pool));
 
-// ✅ Запускаем сервер
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
