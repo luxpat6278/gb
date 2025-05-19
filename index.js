@@ -1,3 +1,4 @@
+// index.js
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -5,10 +6,16 @@ const mysql = require('mysql2/promise');
 
 const app = express();
 
-const allowedOrigins = ['http://localhost:5173', 'https://graduation-bmpx.vercel.app',  'https://gb-tu0w.onrender.com'];
+// Список разрешённых доменов
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://graduation-bmpx.vercel.app',
+  'https://gb-tu0w.onrender.com'
+];
 
+// Параметры CORS
 const corsOptions = {
-  origin: function (origin, callback) {
+  origin(origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -21,26 +28,25 @@ const corsOptions = {
   optionsSuccessStatus: 200
 };
 
-// ✅ Применяем CORS ДО всех маршрутов
+// Подключаем CORS до всех маршрутов
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // Обработка preflight
 
-// ✅ Явная обработка preflight
-app.options('*', cors(corsOptions));
-
-// Обязательно до маршрутов
+// Парсинг JSON
 app.use(express.json());
 
+// Настройка пула MySQL
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
+  database: process.env.DB_NAME
 });
 
-// ✅ Роутер должен использовать `res.json` / `res.send` — но CORS уже применён!
+// Монтируем роутер RSVP
 const rsvpRouter = require('./routes/rspv');
 app.use('/api/rsvp', rsvpRouter(pool));
 
+// Запуск сервера
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
