@@ -7,20 +7,27 @@ const app = express();
 
 const allowedOrigins = ['http://localhost:5173', 'https://graduation-bmpx.vercel.app'];
 
-app.use(cors({
+const corsOptions = {
   origin: function (origin, callback) {
-    // allow requests with no origin like mobile apps or curl requests
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
     } else {
-      return callback(new Error('Not allowed by CORS'));
+      callback(new Error('Not allowed by CORS'));
     }
   },
-  methods: ['GET', 'POST'],
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type'],
   credentials: true,
-}));
+  optionsSuccessStatus: 200
+};
 
+// ✅ Применяем CORS ДО всех маршрутов
+app.use(cors(corsOptions));
+
+// ✅ Явная обработка preflight
+app.options('*', cors(corsOptions));
+
+// Обязательно до маршрутов
 app.use(express.json());
 
 const pool = mysql.createPool({
@@ -30,8 +37,10 @@ const pool = mysql.createPool({
   database: process.env.DB_NAME,
 });
 
+// ✅ Роутер должен использовать `res.json` / `res.send` — но CORS уже применён!
 const rsvpRouter = require('./routes/rspv');
 app.use('/api/rsvp', rsvpRouter(pool));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
