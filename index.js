@@ -5,7 +5,7 @@ const mysql = require('mysql2/promise');
 
 const app = express();
 
-const allowedOrigins = ['http://localhost:5173', 'https://graduation-bmpx.vercel.app'];
+const allowedOrigins = ['http://localhost:5173', 'https://graduation-bmpx.vercel.app',  'https://gb-tu0w.onrender.com'];
 
 const corsOptions = {
   origin: function (origin, callback) {
