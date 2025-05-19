@@ -7,7 +7,6 @@ module.exports = function(pool) {
   router.post('/', async (req, res) => {
     const { name, email, attendance } = req.body;
 
-    // Валидация входных данных
     if (!name || !email || !attendance) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
@@ -20,7 +19,6 @@ module.exports = function(pool) {
       );
       conn.release();
 
-      // Успешный ответ для фронтенда
       return res.status(200).json({ message: 'RSVP saved' });
     } catch (err) {
       console.error('DB error:', err);
