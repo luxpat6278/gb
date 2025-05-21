@@ -1,19 +1,18 @@
-// index.js
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2/promise');
+const path = require('path');
 
 const app = express();
 
-// Список разрешённых доменов
+// Разрешённые источники
 const allowedOrigins = [
   'http://localhost:5173',
   'https://graduation-bmpx.vercel.app',
   'https://gb-tu0w.onrender.com'
 ];
 
-// Параметры CORS
 const corsOptions = {
   origin(origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -28,14 +27,14 @@ const corsOptions = {
   optionsSuccessStatus: 200
 };
 
-// Подключаем CORS до всех маршрутов
+// CORS
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // Обработка preflight
+app.options('*', cors(corsOptions));
 
-// Парсинг JSON
+// JSON body parsing
 app.use(express.json());
 
-// Настройка пула MySQL
+// MySQL pool
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -43,10 +42,15 @@ const pool = mysql.createPool({
   database: process.env.DB_NAME
 });
 
-// Монтируем роутер RSVP
-const rsvpRouter = require('./routes/rspv');
+// RSVP router
+const rsvpRouter = require('./routes/rsvp');
 app.use('/api/rsvp', rsvpRouter(pool));
 
-// Запуск сервера
-const PORT = process.env.PORT || 3000;
+// Serve React build
+app.use(express.static(path.join(__dirname, 'client', 'dist')));
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
+});
+
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
