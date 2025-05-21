@@ -1,28 +1,22 @@
-const express = require('express');
-
-module.exports = function(pool) {
+module.exports = (pool) => {
+  const express = require('express');
   const router = express.Router();
 
-  // POST /api/rsvp
   router.post('/', async (req, res) => {
     const { name, email, attendance } = req.body;
-
     if (!name || !email || !attendance) {
-      return res.status(400).json({ error: 'Missing required fields' });
+      console.warn('Validation failed:', req.body);
+      return res.status(400).json({ error: 'Missing required fields: name, email, attendance' });
     }
-
     try {
-      const conn = await pool.getConnection();
-      await conn.query(
-        'INSERT INTO rsvp (name, email, attendance) VALUES (?, ?, ?)',
+      const [result] = await pool.execute(
+        'INSERT INTO rsvps (name, email, attendance) VALUES (?, ?, ?)',
         [name, email, attendance]
       );
-      conn.release();
-
-      return res.status(200).json({ message: 'RSVP saved' });
+      return res.status(201).json({ id: result.insertId });
     } catch (err) {
-      console.error('DB error:', err);
-      return res.status(500).json({ error: 'Server error' });
+      console.error('Database insertion error:', err.message);
+      return res.status(500).json({ error: 'Internal server error. Please try again later.' });
     }
   });
 
