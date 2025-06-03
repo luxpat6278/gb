@@ -4,19 +4,21 @@ module.exports = (pool) => {
 
   router.post('/', async (req, res) => {
     const { name, email, attendance } = req.body;
+
     if (!name || !email || !attendance) {
-      console.warn('Validation failed:', req.body);
-      return res.status(400).json({ error: 'Missing required fields: name, email, attendance' });
+      return res.status(400).json({ error: 'Пожалуйста, заполните все поля' });
     }
+
     try {
-      const [result] = await pool.execute(
-        'INSERT INTO rsvps (name, email, attendance) VALUES (?, ?, ?)',
+      const [result] = await pool.query(
+        'INSERT INTO graduates (name, email, attendance) VALUES (?, ?, ?)',
         [name, email, attendance]
       );
-      return res.status(201).json({ id: result.insertId });
+
+      res.json({ id: result.insertId, message: 'Выпускник добавлен.' });
     } catch (err) {
-      console.error('Database insertion error:', err.message);
-      return res.status(500).json({ error: 'Internal server error. Please try again later.' });
+      console.error(err);
+      res.status(500).json({ error: 'Ошибка сервера' });
     }
   });
 

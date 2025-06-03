@@ -6,11 +6,11 @@ const path = require('path');
 
 const app = express();
 
-// Разрешённые источники
+// Разрешённые источники для CORS
 const allowedOrigins = [
   'http://localhost:5173',
   'https://graduation-bmpx.vercel.app',
-  'https://gb-tu0w.onrender.com'
+  'https://gb-tu0w.onrender.com',
 ];
 
 const corsOptions = {
@@ -24,7 +24,7 @@ const corsOptions = {
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type'],
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
 };
 
 // CORS
@@ -39,14 +39,14 @@ const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME
+  database: process.env.DB_NAME,
 });
 
-// RSVP router
-const rsvpRouter = require('./routes/rsvp');
+// Маршруты RSVP (обрати внимание на правильное имя файла и путь)
+const rsvpRouter = require('./routes/rspv');
 app.use('/api/rsvp', rsvpRouter(pool));
 
-// Serve React build
+// Serve React build (если фронтенд собирается в папку client/dist)
 app.use(express.static(path.join(__dirname, 'client', 'dist')));
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
