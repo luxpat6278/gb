@@ -1,3 +1,4 @@
+// index.js
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -5,6 +6,12 @@ const mysql = require('mysql2/promise');
 const path = require('path');
 
 const app = express();
+
+// Логирование всех запросов (для отладки)
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+});
 
 // Разрешённые источники для CORS
 const allowedOrigins = [
@@ -42,12 +49,14 @@ const pool = mysql.createPool({
   database: process.env.DB_NAME
 });
 
-// Маршруты RSVP
-const rsvpRouter = require('./routes/rspv');
+// Подключение маршрута /api/rsvp
+const rsvpRouter = require('./routes/rsvp');
 app.use('/api/rsvp', rsvpRouter(pool));
 
-// Serve React build
+// Отдача статических файлов React сборки
 app.use(express.static(path.join(__dirname, 'client', 'dist')));
+
+// Обработка остальных маршрутов (для SPA)
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
 });
